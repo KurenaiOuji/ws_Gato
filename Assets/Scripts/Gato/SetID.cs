@@ -10,7 +10,7 @@ public class SetID : MonoBehaviour
 
     public void X()
     {
-        MyID = "id1";
+        MyID = "1";
         SetIDGame.Invoke(MyID);
         print(MyID);
         gameObject.SetActive(false);
@@ -18,7 +18,7 @@ public class SetID : MonoBehaviour
 
     public void O()
     {
-        MyID = "id2";
+        MyID = "2";
         SetIDGame.Invoke(MyID);
         print(MyID);
         gameObject.SetActive(false);
