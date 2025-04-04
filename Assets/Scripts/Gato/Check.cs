@@ -7,11 +7,16 @@ public class Check : MonoBehaviour
 {
     public static event Action<int> OnPress;
 
+    GatoWS _gatoWS;
+
     public Button button;
     public TextMeshProUGUI buttonText;
+    public TextMeshProUGUI ActualText;
+
     public string playerSide;
     string MyID;
-    private int _actual = 1;
+
+    public int _actual = 1;
 
     public int checkPosition;
 
@@ -23,6 +28,22 @@ public class Check : MonoBehaviour
     private void Start()
     {
         SetID.SetIDGame += SetMyID;
+        ActualText.text = "Turno: " + _actual.ToString();
+    }
+
+    private void OnEnable()
+    {
+        GatoWS.UpdateActual += ChangeTurn;
+    }
+    private void OnDisable()
+    {
+        GatoWS.UpdateActual -= ChangeTurn;
+    }
+
+    void ChangeTurn()
+    {
+        _actual++;
+        ActualText.text = "Turno: " + _actual.ToString();
     }
 
     public void setGameManagerReference(GameManager manager)

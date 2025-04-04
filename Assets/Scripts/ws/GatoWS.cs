@@ -1,10 +1,20 @@
 using UnityEngine;
 using NativeWebSocket;
+using System;
+using System.Reflection;
+using TMPro;
+using UnityEngine.UI;
 
 public class GatoWS : MonoBehaviour
 {
+    public static event Action UpdateActual;
+
     WebSocket _websocket;
-    private SetID _setId;
+    SetID _setId;
+
+    public Button[] botones;
+
+    string _myID;
 
     private int[] _board = new int[9];
     
@@ -12,17 +22,20 @@ public class GatoWS : MonoBehaviour
 
     void OnEnable()
     {
-        Check.OnPress += GetActual;
+        Check.OnPress += Active;
+        SetID.SetIDGame += SetMyID;
     }
 
     void OnDisable()
     {
-        Check.OnPress -= GetActual;
+        Check.OnPress -= Active;
+        SetID.SetIDGame -= SetMyID;
     }
-    
+
     // Start is called before the first frame update
     async void Start()
     {
+        //Debug.Log(_setId.MyID);
         _websocket = new WebSocket("ws://localhost:8080");
 
         _websocket.OnOpen += () =>
@@ -112,7 +125,36 @@ public class GatoWS : MonoBehaviour
     {
         if (_websocket.State == WebSocketState.Open)
         {
-            await _websocket.SendText("202|" + tablero + "|" + _setId.MyID);
+            await _websocket.SendText("202|" + tablero + "|" + _myID);
+        }
+    }
+
+    public void Active(int check)
+    {
+        UpdateActual.Invoke();
+        GetActual(check);
+    }
+
+    void SetMyID(string _EventID)
+    {
+        _myID = _EventID;
+    }
+
+    void ActualizarBoton(int index, int valor)
+    {
+        TextMeshProUGUI text = botones[index].GetComponentInChildren<TextMeshProUGUI>();
+
+        switch (valor)
+        {
+            case 0:
+                text.text = "";
+                break;
+            case 1:
+                text.text = "X";
+                break;
+            case 2:
+                text.text = "O";
+                break;
         }
     }
 }

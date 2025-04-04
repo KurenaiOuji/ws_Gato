@@ -71,7 +71,11 @@ wss.on('connection', function connection(ws) {
 
 				if (pos >= 0 && pos < cliente.board.length) {
 					cliente.board[pos - 1] = player; // Actualizar la posición en el tablero
-					ws.send("Tablero actualizado: " + cliente.board.toString());
+					wss.clients.forEach(function each(client) {
+						if (client.readyState === WebSocket.OPEN) {
+							client.send("Tablero actualizado: " + cliente.board.toString());
+						}
+					});					
 				} else {
 					ws.send("Posición inválida");
 				}
