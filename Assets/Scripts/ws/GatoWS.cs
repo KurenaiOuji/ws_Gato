@@ -70,10 +70,13 @@ public class GatoWS : MonoBehaviour
 
                 for (int i = 0; i < values.Length; i++)
                 {
-                    _board[i] = int.Parse(values[i]); // Guardar en la variable local
+                   _board[i] = int.Parse(values[i]); // Guardar en la variable local
                 }
 
                 Debug.Log("Tablero actualizado en Unity: " + string.Join(",", _board));
+
+                ActualizarTableroDesdeString(boardData);
+                UpdateActual.Invoke();
             }
         };
 
@@ -131,7 +134,7 @@ public class GatoWS : MonoBehaviour
 
     public void Active(int check)
     {
-        UpdateActual.Invoke();
+        
         GetActual(check);
     }
 
@@ -139,6 +142,17 @@ public class GatoWS : MonoBehaviour
     {
         _myID = _EventID;
     }
+
+    void ActualizarTableroDesdeString(string tableroString)
+    {
+        string[] valores = tableroString.Split(',');
+        for (int i = 0; i < valores.Length; i++)
+        {
+            _board[i] = int.Parse(valores[i]);
+            ActualizarBoton(i, _board[i]);
+        }
+    }
+
 
     void ActualizarBoton(int index, int valor)
     {
@@ -151,9 +165,11 @@ public class GatoWS : MonoBehaviour
                 break;
             case 1:
                 text.text = "X";
+                botones[index].interactable = false;
                 break;
             case 2:
                 text.text = "O";
+                botones[index].interactable = false;
                 break;
         }
     }
