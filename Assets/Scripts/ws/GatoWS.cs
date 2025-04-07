@@ -161,7 +161,7 @@ public class GatoWS : MonoBehaviour
         switch (valor)
         {
             case 0:
-                text.text = "";
+                //text.text = "";
                 break;
             case 1:
                 text.text = "X";
