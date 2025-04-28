@@ -87,7 +87,10 @@ wss.on('connection', function connection(ws) {
 					}
 				});
 
-				user.connection.send("300|" + JSON.stringify(lista));
+				let json = '{"users":' + JSON.stringify(lista) + '}';
+
+				user.connection.send("301|" + json);
+				console.log("Users Send");
 			break;
 
 			case '400': // Mandar mensaje directo

@@ -1,16 +1,10 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using NativeWebSocket;
 using UnityEngine.UI;
 using TMPro;
 using System;
-
-[System.Serializable]
-public class UsersList
-{
-    public List<string> users;
-}
 
 public class DataGato : MonoBehaviour
 {
@@ -19,17 +13,16 @@ public class DataGato : MonoBehaviour
     public static event Action usernameUpdated;
     public static event Action usernameError;
     public static event Action noUsername;
-    public static event Action<string> OnUserButtonClicked;
 
     WebSocket _websocket;
 
     public TMP_InputField IF_username;
     string _username;
     string _messageCode;
+    string _messageMain;
 
-    [Header("UI Elements")]
     public GameObject buttonPrefab;
-    public Transform buttonContainer;
+    public Transform contentContainer;
 
     void Start()
     {
@@ -77,6 +70,7 @@ public class DataGato : MonoBehaviour
             if (parts.Length > 0)
             {
                 _messageCode = parts[0];
+                _messageMain = parts[1];
             }
 
             switch (_messageCode)
@@ -89,22 +83,12 @@ public class DataGato : MonoBehaviour
                     Debug.Log("System: Username allready exist! | 202");
                     usernameError?.Invoke();
                     break;
-            }
+                case "301":
+                    UserList usuarios = JsonUtility.FromJson<UserList>(_messageMain);
+                    GenerateUserButtons(usuarios.users);
 
-            if (message.StartsWith("300|"))
-            {
-                string json = message.Substring(4);
-                UsersList usuarios = JsonUtility.FromJson<UsersList>(message);
-                foreach (string user in usuarios.users)
-                {
-                    Debug.Log("Usuario disponible: " + user);
-                }
+                    break;
             }
-            else
-            {
-                Debug.Log("Mensaje normal recibido: " + message);
-            }
-
         };
         await _websocket.Connect();
     }
@@ -123,22 +107,25 @@ public class DataGato : MonoBehaviour
             await _websocket.SendText("300|");
         }
     }
-
-    void GenerateUserButtons()
+    void GenerateUserButtons(List<string> users)
     {
-        foreach (Transform child in buttonContainer)
-        {
-            Destroy(child.gameObject);
-        }
-
+        // Crear un botón por cada usuario
         foreach (string user in users)
         {
-            GameObject newButton = Instantiate(buttonPrefab, buttonContainer);
-            TMP_Text buttonText = newButton.GetComponentInChildren<TMP_Text>();
+            GameObject buttonObj = Instantiate(buttonPrefab, contentContainer);
+            TMP_Text buttonText = buttonObj.GetComponentInChildren<TMP_Text>();
             buttonText.text = user;
 
-            string capturedUser = user;
-            newButton.GetComponent<Button>().onClick.AddListener(() => OnUserButtonClicked(capturedUser));
+            Button button = buttonObj.GetComponent<Button>();
+            string selectedUser = user; // Necesario para capturar correctamente el nombre en el lambda
+
+            button.onClick.AddListener(() => OnUserButtonClicked(selectedUser));
         }
+    }
+
+    async void OnUserButtonClicked(string username)
+    {
+        Debug.Log("Selected User: " + username);
+        await _websocket.SendText("401|" + username);
     }
 }
