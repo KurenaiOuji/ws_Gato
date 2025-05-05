@@ -5,6 +5,7 @@ using NativeWebSocket;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using UnityEditor.Experimental.GraphView;
 
 public class DataGato : MonoBehaviour
 {
@@ -13,6 +14,9 @@ public class DataGato : MonoBehaviour
     public static event Action usernameUpdated;
     public static event Action usernameError;
     public static event Action noUsername;
+    public static event Action GameInvite;
+    public static event Action Accept;
+    public static event Action Decline;
 
     WebSocket _websocket;
 
@@ -84,13 +88,25 @@ public class DataGato : MonoBehaviour
                     usernameError?.Invoke();
                     break;
                 case "301":
-                    UserList usuarios = JsonUtility.FromJson<UserList>(_messageMain);
-                    GenerateUserButtons(usuarios.users);
-
+                    Debug.Log("_messageCode: " + _messageCode);
+                    Debug.Log("_messageMain: " + _messageMain);
+                    StartCoroutine(WaitforJson());
+                    break;
+                case "400":
+                    GameInvite?.Invoke();
+                    break;
+                case "500":
+                    Debug.Log("Send 500");
+                    NewUser();
                     break;
             }
         };
         await _websocket.Connect();
+    }
+
+    async public void NewUser()
+    {
+        await _websocket.SendText("300|");
     }
 
     async public void ChangeUsername()
@@ -107,9 +123,35 @@ public class DataGato : MonoBehaviour
             await _websocket.SendText("300|");
         }
     }
+
+    public void AcceptInvite()
+    {
+        Accept?.Invoke();
+    }
+
+    public void DeclineInvite()
+    {
+        Decline.Invoke();
+    }
+
+    IEnumerator WaitforJson()
+    {
+        while (_messageMain == null)
+        {
+            yield return new WaitForSeconds(.5f);
+        }
+
+        UserList usuarios = JsonUtility.FromJson<UserList>(_messageMain);
+        GenerateUserButtons(usuarios.users);
+    }
+
     void GenerateUserButtons(List<string> users)
     {
-        // Crear un botón por cada usuario
+        foreach (Transform child in contentContainer)
+        {
+            Destroy(child.gameObject);
+        }
+
         foreach (string user in users)
         {
             GameObject buttonObj = Instantiate(buttonPrefab, contentContainer);
@@ -117,7 +159,7 @@ public class DataGato : MonoBehaviour
             buttonText.text = user;
 
             Button button = buttonObj.GetComponent<Button>();
-            string selectedUser = user; // Necesario para capturar correctamente el nombre en el lambda
+            string selectedUser = user;
 
             button.onClick.AddListener(() => OnUserButtonClicked(selectedUser));
         }

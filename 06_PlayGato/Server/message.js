@@ -68,6 +68,13 @@ wss.on('connection', function connection(ws) {
 				{
 					user.username = info[1];
 					user.connection.send("201|Cambio Exitoso!");
+					
+					users.forEach(us => {
+						if(us.connection.readyState === WebSocket.OPEN)
+						{
+								us.connection.send("500|");
+						}
+					});
 				}
 				else
 				{
@@ -89,8 +96,8 @@ wss.on('connection', function connection(ws) {
 
 				let json = '{"users":' + JSON.stringify(lista) + '}';
 
-				user.connection.send("301|" + json);
 				console.log("Users Send");
+				user.connection.send("301|" + json);
 			break;
 
 			case '400': // Mandar mensaje directo
@@ -100,7 +107,7 @@ wss.on('connection', function connection(ws) {
 					if(us.username === info[1])
 					{
 						u=false;
-						us.connection.send("400|"+info[2]);
+						us.connection.send("401|");
 					}
 				});
 

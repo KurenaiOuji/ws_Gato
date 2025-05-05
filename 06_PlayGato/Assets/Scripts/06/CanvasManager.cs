@@ -13,6 +13,9 @@ public class CanvasManager : MonoBehaviour
         DataGato.usernameUpdated += usernameUpdated;
         DataGato.usernameError += UsernameError;
         DataGato.noUsername += NoUsername;
+        DataGato.GameInvite += Invite;
+        DataGato.Accept += AcceptInv;
+        DataGato.Decline += Decline;
     }
 
     private void OnDisable()
@@ -20,6 +23,9 @@ public class CanvasManager : MonoBehaviour
         DataGato.usernameUpdated -= usernameUpdated;
         DataGato.usernameError -= UsernameError;
         DataGato.noUsername -= NoUsername;
+        DataGato.GameInvite -= Invite;
+        DataGato.Accept -= AcceptInv;
+        DataGato.Decline -= Decline;
     }
 
     void usernameUpdated()
@@ -41,5 +47,21 @@ public class CanvasManager : MonoBehaviour
         canvas[2].gameObject.SetActive(false);
         canvas[2].gameObject.SetActive(true);
         Error.text = "Please Use a Valid Username";
+    }
+
+    void Invite()
+    {
+        canvas[3].gameObject.SetActive(true);
+    }
+
+    void AcceptInv()
+    {
+        canvas[3].gameObject.SetActive(false);
+        canvas[4].gameObject.SetActive(true);
+    }
+
+    void Decline()
+    {
+        canvas[3].gameObject.SetActive(false);
     }
 }
