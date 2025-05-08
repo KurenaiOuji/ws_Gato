@@ -6,6 +6,7 @@ class User{
 	{
 		this._username="none";
 		this._conn=null;
+		this._status = "available";
 	}
 
 	set username( user )
@@ -26,6 +27,16 @@ class User{
 	get connection ()
 	{
 		return this._conn;
+	}
+
+	set status(stat)
+	{
+		this._status = stat;
+	}
+
+	get status()
+	{
+		return this._status;
 	}
 
 }
@@ -89,8 +100,11 @@ wss.on('connection', function connection(ws) {
 				users.forEach(us => {
 					if(us.connection.readyState === WebSocket.OPEN)
 					{
-						if( !(us.username === "none") )
-							lista.push(us.username);
+						if(us.status === "available" && !(us.username === "none"))
+							if (us.username !== user.username)
+							{
+								lista.push(us.username);
+							}
 					}
 				});
 
@@ -134,6 +148,34 @@ wss.on('connection', function connection(ws) {
 
 			break;
 
+			
+			case '402':
+				if (info[2] === "OK")
+				{
+					let player1 = user;
+					let player2 = user.find(us =>us.username === info[1]);
+
+					if ( player2)
+					{
+						player1.status = "busy";
+						player2.status = "busy";
+
+						player1.connection.send("403|Iniciando partida con " + player2.username);
+						player2.connection.send("403|Iniciando partida con " + player1.username);
+					}
+				}
+				else
+				{
+					let player = user.find(us => us.username === info[1]);
+					if (player2)
+					{
+						player2.connection.send("400| No")
+					}
+				}
+				
+			break;
+
+	/*
 			case '402': // Mandar solicitud de juego // 402|greys|OK // 402|grey|NO
 				u=true;
 
@@ -150,10 +192,28 @@ wss.on('connection', function connection(ws) {
 				}
 
 			break;
-			
-				case '404': // Mandar mensaje directo
-				break;
+	*/		
+			case '404': // Mandar mensaje directo
+			break;
 
+/*
+			case '500':
+				const opponent =user.find(us => us.username ===info[1]);
+
+				if (opponent)
+				{
+					opponent.status = "availble";
+					user.status = "available";
+
+					opponent.connection.send("501|Prtida finalizada con "+ user.username);
+					user.connection.send("501|Prtida finalizada con "+ opponent.username);
+				}
+				else{
+					user.tatus = "available";
+					user.connection.sen("404|No se encontro al jugador");
+				}
+			break;
+*/				
 			default: // broadcast
 				// Mandar a todos los clientes conectados el mensaje con el username de quien lo envió
 				users.forEach(us => {
@@ -163,6 +223,7 @@ wss.on('connection', function connection(ws) {
 					}
 				});
 			break;
+
 		}
 	});
 
