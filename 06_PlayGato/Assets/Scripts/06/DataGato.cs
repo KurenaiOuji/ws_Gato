@@ -7,6 +7,12 @@ using TMPro;
 using System;
 using UnityEditor.Experimental.GraphView;
 
+[Serializable]
+public class ChatList
+{
+    public string[] mensajes;
+}
+
 public class DataGato : MonoBehaviour
 {
     public List<string> users;
@@ -27,6 +33,11 @@ public class DataGato : MonoBehaviour
 
     public GameObject buttonPrefab;
     public Transform contentContainer;
+
+    public TMP_InputField messageInputField;
+    public TextMeshProUGUI chatDisplay;
+    private string selectedUser;
+
 
     void Start()
     {
@@ -99,6 +110,18 @@ public class DataGato : MonoBehaviour
                     Debug.Log("Send 500");
                     NewUser();
                     break;
+                case "600":
+                    chatDisplay.text += _messageMain + "\n";
+                    break;
+
+                case "601":
+                    string[] history = JsonUtility.FromJson<ChatList>("{\"mensajes\":" + _messageMain + "}").mensajes;
+                    chatDisplay.text = ""; // Limpiar chat antes de mostrar historial
+                    foreach (string msg in history)
+                    {
+                        chatDisplay.text += msg + "\n";
+                    }
+                    break;
             }
         };
         await _websocket.Connect();
@@ -165,9 +188,27 @@ public class DataGato : MonoBehaviour
         }
     }
 
+    //async void OnUserButtonClicked(string username)
+    //{
+    //    Debug.Log("Selected User: " + username);
+    //    await _websocket.SendText("600|" + username + "|Mensaje Desde Unity");
+    //}
+
+    public async void SendMessageToUser()
+    {
+        if (!string.IsNullOrEmpty(selectedUser) && !string.IsNullOrEmpty(messageInputField.text))
+        {
+            string messageToSend = messageInputField.text;
+            await _websocket.SendText("600|" + selectedUser + "|" + messageToSend);
+            messageInputField.text = ""; // limpiar el input
+        }
+    }
+
     async void OnUserButtonClicked(string username)
     {
-        Debug.Log("Selected User: " + username);
-        await _websocket.SendText("401|" + username);
+        selectedUser = username;
+        Debug.Log("Selected User: " + selectedUser);
+
+        await _websocket.SendText("601|" + selectedUser); // Solicita historial
     }
 }
